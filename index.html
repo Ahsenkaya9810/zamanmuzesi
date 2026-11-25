@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>İstanbul Zaman Müzesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE  : ölçülü, müze kataloğu sakinliği; bordo-krem marka dili broşürden.
+IDEA   : kat planı yerden yükselip binaya dönüşür; kaydırma = planın odaları arasında yürüyüş.
+PICTURE: tam ekran gerçek zamanlı 3D Beykoz Kundura binası, köşede canlı kat planı "buradasınız".
+COLOUR & TYPE: kâğıt kremi #efe6d6, bordo #7b2632, mürekkep #2a201c; Cormorant Garamond + Figtree.
+LAYOUT : sabit sahne üzerinde kayan oda kartları, ardından takvim, atölyeler, ziyaret, iletişim.
+*/
+:root{color-scheme:light dark;
+--paper:light-dark(#efe6d6,#1c1614);--paper2:light-dark(#e6dac6,#241c19);--ink:light-dark(#2a201c,#efe6d6);--mute:light-dark(#6b5a4f,#bfae9c);
+--burg:light-dark(#7b2632,#d17a83);--burgS:#7b2632;--line:light-dark(rgba(42,32,28,.16),rgba(239,230,214,.16));--card:light-dark(rgba(244,237,226,.86),rgba(30,22,20,.84))}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 Figtree,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.05;text-wrap:balance;margin:0}
+a{color:inherit}
+#scene{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#efe6d6;z-index:0}
+.nogl #scene{background:url(img/salon.jpg) center/cover}
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:20px;padding:14px max(4vw,16px) 22px;transition:background .4s;background:linear-gradient(rgba(239,230,214,.92),rgba(239,230,214,.6) 65%,rgba(239,230,214,0));color:#2a201c}
+.nav.solid{background:var(--paper);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Cormorant Garamond",serif;font-weight:700;font-size:19px;letter-spacing:.02em;line-height:1}
+.brand svg{width:30px;height:30px;color:var(--burg)}
+.brand small{display:block;font:500 11px/1.3 Figtree,sans-serif;letter-spacing:.08em;color:var(--mute)}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0 0 0 auto;padding:0;flex-wrap:wrap}
+.nav ul a{display:block;padding:10px 12px;border-radius:99px;text-decoration:none;font-weight:500;font-size:15px}
+.nav ul a:hover{background:var(--line)}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px;border-radius:99px;border:1px solid var(--burgS);background:var(--burgS);color:#f6eee2;font:600 15px Figtree,sans-serif;text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:currentColor}
+.btn:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid #c2a06a;outline-offset:2px}
+/* tour */
+#tour{position:relative;z-index:2}
+.ch{height:100vh;display:flex;align-items:center;padding:90px max(5vw,16px) 40px;pointer-events:none}
+.ch.r{justify-content:flex-end}
+.card{pointer-events:auto;width:min(420px,100%);background:var(--card);backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:4px;padding:26px 28px;box-shadow:0 20px 60px rgba(40,20,10,.12);opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+.ch.on .card{opacity:1;transform:none}
+.card .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mute);margin-bottom:10px}
+.card .meta b{color:var(--burg);font-weight:600}
+.card h2{font-size:clamp(32px,3.4vw,44px);color:var(--ink)}
+.card p{margin:12px 0 0;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding:0;list-style:none}
+.chips li{font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:99px;background:light-dark(rgba(255,255,255,.4),rgba(255,255,255,.04))}
+.now{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.now span{font-size:13px;color:var(--mute)}.now strong{font:600 22px "Cormorant Garamond",serif;color:var(--burg)}
+/* hero */
+.hero{height:100vh;display:flex;flex-direction:column;justify-content:center;padding:100px max(5vw,16px) 60px;position:relative;z-index:2;pointer-events:none}
+.hero .t{pointer-events:auto;max-width:560px;opacity:0;transform:translateY(16px);transition:opacity 1.2s .2s,transform 1.2s .2s}
+.gl-ready .hero .t,.nogl .hero .t,.done .hero .t{opacity:1;transform:none}
+.hero h1{font-size:clamp(52px,8.4vw,112px);line-height:.92;color:var(--burgS);letter-spacing:.01em}
+.hero h1 span{display:block;font-size:.46em;color:#2a201c;letter-spacing:.12em}
+.hero .rule{display:flex;align-items:center;gap:14px;margin:20px 0 6px;font:600 13px Figtree,sans-serif;letter-spacing:.32em;color:#2a201c}
+.hero .rule::before{content:"";width:64px;height:1px;background:#2a201c}
+.hero p{font:500 italic clamp(20px,2vw,25px)/1.35 "Cormorant Garamond",serif;color:#3b2d26;max-width:470px;margin:14px 0 26px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px}
+.hero .btn.ghost{color:#2a201c}
+.hero .veil{position:absolute;inset:0 auto 0 0;width:min(760px,100%);background:linear-gradient(90deg,rgba(239,230,214,.92),rgba(239,230,214,.65) 55%,rgba(239,230,214,0));z-index:-1;pointer-events:none}
+.planlabel{position:absolute;left:max(5vw,16px);bottom:28px;font:600 12px Figtree,sans-serif;letter-spacing:.2em;color:var(--burgS);transition:opacity 1s}
+.done .planlabel{opacity:0}
+.cue{position:absolute;right:max(5vw,16px);bottom:28px;display:flex;align-items:center;gap:10px;font-size:14px;color:#2a201c}
+.cue i{width:1px;height:42px;background:linear-gradient(#2a201c,transparent);animation:cue 2s infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* HUD: mini plan + rail */
+.hud{position:fixed;right:max(2vw,12px);bottom:max(2vw,12px);z-index:15;width:min(420px,46vw);background:var(--card);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:4px;padding:10px 12px 8px;transition:opacity .5s,transform .5s}
+.hud.off{opacity:0;transform:translateY(20px);pointer-events:none}
+.hud header{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--mute)}
+.hud header b{color:var(--ink);font-weight:600}
+.hud button{font:600 12.5px Figtree,sans-serif;color:var(--burg);background:none;border:1px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;min-height:32px}
+#mini{width:100%;height:auto;display:block;margin-top:6px}
+#mini .room{fill:transparent;stroke:var(--ink);stroke-opacity:.45;stroke-width:1.6;transition:fill .5s}
+#mini .room.hl{fill:var(--burgS);fill-opacity:.5;stroke:var(--burgS);stroke-opacity:1}
+#mini .room.go{cursor:pointer}#mini .room.go:hover{fill:var(--burgS);fill-opacity:.25}
+#mini .shell{fill:light-dark(rgba(255,255,255,.35),rgba(255,255,255,.04));stroke:var(--ink);stroke-width:4}
+#mini .orn{fill:none;stroke:var(--ink);stroke-opacity:.5;stroke-width:1.4}
+#mini text{font:600 24px Figtree,sans-serif;fill:var(--ink);opacity:.75;pointer-events:none}
+#you{transition:none}
+#mini .plat{fill:light-dark(rgba(239,230,214,.55),rgba(30,22,20,.5));stroke:var(--burgS);stroke-opacity:.8;stroke-width:3}
+#mini .plat.hl{fill:var(--burgS);fill-opacity:.8}
+#mini .ramp{stroke:var(--burgS);stroke-width:9;stroke-dasharray:14 9;stroke-linecap:round}
+#mini text.kot{font-weight:500;font-size:19px}
+#mini .room.hl+text,#mini .plat.hl~text{opacity:.9}
+#mini .north path{fill:var(--ink)}#mini .north text,#mini .scale text{font-size:18px}
+#mini .scale path{stroke:var(--ink);stroke-width:3;fill:none}
+.hudfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.floors{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:2px}
+.floors button{border:0;min-height:30px;padding:4px 11px;color:var(--ink);font-weight:500}
+.floors button[aria-pressed=true]{background:var(--burgS);color:#f6eee2}
+#kot{font:500 12px Figtree,sans-serif;color:var(--mute);font-variant-numeric:tabular-nums}
+.rail{position:fixed;right:max(2vw,12px);top:38%;transform:translateY(-50%);z-index:15;display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0;transition:opacity .5s}
+.rail.off{opacity:0;pointer-events:none}
+.rail a{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-height:30px;text-decoration:none;font-size:13px;color:var(--ink)}
+.rail a span{opacity:0;transform:translateX(6px);transition:.3s;background:var(--card);padding:3px 9px;border-radius:99px;white-space:nowrap}
+.rail a:hover span,.rail a.on span{opacity:1;transform:none}
+.rail a i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);transition:.3s}
+.rail a.on i{background:var(--burgS);border-color:var(--burgS);transform:scale(1.4)}
+/* content */
+main{position:relative;z-index:3;background:var(--paper)}
+.band{padding:clamp(56px,7vw,110px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.band h2{font-size:clamp(36px,4.4vw,52px)}
+.lead{font:500 italic 22px/1.4 "Cormorant Garamond",serif;color:var(--mute);max-width:640px;margin:10px 0 0}
+.cycle{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:0;margin-top:40px;border-top:1px solid var(--ink)}
+.cycle li{list-style:none;padding:14px 10px 0 0;position:relative}
+.cycle li::before{content:"";position:absolute;top:-6px;left:0;width:11px;height:11px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.cycle li.cur::before{background:var(--burgS);border-color:var(--burgS);box-shadow:0 0 0 6px light-dark(rgba(123,38,50,.15),rgba(209,122,131,.2))}
+.cycle .m{font:600 13px Figtree;color:var(--mute)}
+.cycle .n{font:600 21px/1.1 "Cormorant Garamond",serif;margin-top:4px}
+.cycle .s{font-size:13px;color:var(--mute);margin-top:4px}
+.cycle li.cur .n{color:var(--burg)}
+.cycle ol{display:contents}
+.months{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:56px}
+.month{border-top:3px solid var(--burgS);background:var(--paper2)}
+.month img{width:100%;height:96px;object-fit:cover;display:block;filter:sepia(.2)}
+.month h3{font-size:30px;padding:16px 18px 0;color:var(--burg)}
+.month .ex{padding:2px 18px 10px;font-size:14px;color:var(--mute)}
+.month ul{list-style:none;margin:0;padding:0 18px 14px}
+.month li{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.month li b{font:600 26px/1 "Cormorant Garamond",serif;color:var(--burg)}
+.month li strong{display:block;font-weight:600;font-size:15px}
+.month li span{font-size:13.5px;color:var(--mute)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start}
+.routes{display:grid;gap:0;margin-top:26px}
+.route{display:grid;grid-template-columns:54px 1fr;gap:16px;padding:18px 0;border-top:1px solid var(--line)}
+.route svg{width:44px;height:44px;color:var(--burg)}
+.route h3{font-size:26px}.route p{margin:4px 0 0;color:var(--mute)}
+.ateliers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:26px}
+.atl{background:var(--paper2);border:1px solid var(--line)}
+.atl img{width:100%;height:84px;object-fit:cover;display:block}
+.atl div{padding:12px 16px 16px}.atl h3{font-size:24px}.atl p{margin:4px 0 0;font-size:14px;color:var(--mute)}
+.visit{background:var(--burgS);color:#f3e9da}
+.visit .lead{color:#e3cdbd}
+.vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin-top:40px}
+.vgrid h3{font-size:28px;margin-bottom:12px}
+.vgrid dl{margin:0;display:grid;gap:12px}
+.vgrid dt{font-size:13px;color:#e3cdbd}.vgrid dd{margin:0;font-size:16.5px}
+.vgrid dd big{font:600 30px "Cormorant Garamond",serif;white-space:nowrap}
+.pano{margin-top:48px;position:relative}
+.pano img{width:100%;height:clamp(180px,26vw,320px);object-fit:cover;display:block;filter:sepia(.25) contrast(1.05)}
+.pano figcaption{font-size:13px;color:#e3cdbd;margin-top:8px}
+footer{padding:36px max(5vw,16px);display:flex;flex-wrap:wrap;gap:16px 40px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);font-size:14px;color:var(--mute);background:var(--paper)}
+footer .brand{color:var(--ink)}
+@media(max-width:900px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}.cycle{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:26px}.vgrid{grid-template-columns:minmax(0,1fr)}.split{grid-template-columns:minmax(0,1fr)}.nav ul li.hide{display:none}.rail{display:none}}
+@media(max-width:600px){.nav ul{display:none}.nav .btn{margin-left:auto;padding:0 14px}.ch{align-items:flex-end;padding-bottom:180px}.ch.r{justify-content:flex-start}.card{padding:20px}.hud{width:min(250px,62vw)}.months,.ateliers{grid-template-columns:minmax(0,1fr)}.hero{justify-content:flex-start;padding-top:96px}.hero .veil{width:100%;background:linear-gradient(180deg,rgba(239,230,214,.9),rgba(239,230,214,.5) 60%,rgba(239,230,214,0))}.cue{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="Beykoz Kundura'daki İstanbul Zaman Müzesi'nin kat planından üretilmiş üç boyutlu modeli"></canvas>
+
+<nav class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="İstanbul Zaman Müzesi ana sayfa">
+    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 36V18C5 10 12 4 20 4s15 6 15 14v18"/><path d="M5 36h30"/><path d="M12 36V21a4 4 0 0 1 8 0v15M20 36V21a4 4 0 0 1 8 0v15"/><path d="M10 15c3-5 7-7 10-7s7 2 10 7"/></svg>
+    <span>İstanbul Zaman Müzesi<small>BEYKOZ KUNDURA</small></span>
+  </a>
+  <ul>
+    <li><a href="#tur" data-ch="1">Müzeyi gez</a></li>
+    <li class="hide"><a href="#takvim">Sergiler</a></li>
+    <li class="hide"><a href="#etkinlik">Etkinlikler</a></li>
+    <li><a href="#ziyaret">Ziyaret</a></li>
+  </ul>
+  <a class="btn" href="#ziyaret">Bilet al</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="veil"></div>
+  <div class="t">
+    <h1><span>İSTANBUL</span>Zaman Müzesi</h1>
+    <div class="rule">BEYKOZ KUNDURA</div>
+    <p>İstanbul'un katmanlı zamanını mekân, insan ve su üzerinden okuyan; geçmişi, bugünü ve geleceği buluşturan deneyimsel bir müze.</p>
+    <div class="cta"><a class="btn" href="#tur" data-ch="1">Kat planında yürü</a><a class="btn ghost" href="#ziyaret">Ziyaretini planla</a></div>
+  </div>
+  <div class="planlabel">ZEMİN KAT PLANI — ÇİZİMDEN MEKÂNA</div>
+  <div class="cue"><i></i>Kaydırın, plan binaya dönüşsün</div>
+</header>
+
+<section id="tour" aria-label="Kat planı turu"></section>
+
+<aside class="hud off" id="hud" aria-label="Kat planı">
+  <header><span><b id="hudRoom">Zemin kat</b> · buradasınız</span><button type="button" id="planBtn" aria-pressed="false">Planı aç</button></header>
+  <svg id="mini" viewBox="50 222 1392 612" role="img" aria-label="Kat planı ve konumunuz"></svg>
+  <div class="hudfoot"><div class="floors" role="group" aria-label="Kat seçimi"><button type="button" data-f="0" aria-pressed="true">Zemin kat</button><button type="button" data-f="1" aria-pressed="false">1. asma kat</button></div><span id="kot">göz kotu</span></div>
+</aside>
+<ul class="rail off" id="rail"></ul>
+
+<main id="icerik">
+  <section class="band" id="takvim">
+    <div class="wrap">
+      <h2>Değişen Sergi Döngüsü</h2>
+      <p class="lead">Her ay farklı bir uygarlık ve dönem, İstanbul'un zaman topoğrafyasında yeniden hayat buluyor.</p>
+      <ol class="cycle" id="cycle"></ol>
+      <div class="months" id="etkinlik"></div>
+    </div>
+  </section>
+
+  <section class="band" id="rotalar" style="background:var(--paper2)">
+    <div class="wrap split">
+      <div>
+        <h2>Zaman Rotaları</h2>
+        <p class="lead">Kalıcı sergi alanındaki İstanbul maketini üç farklı hikâyeyle okuyun.</p>
+        <div class="routes">
+          <div class="route"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 34l4-18 8 9 4-13 4 13 8-9 4 18z"/><path d="M8 38h32"/></svg><div><h3>İktidar Rotası</h3><p>Yönetim, güç ilişkileri ve dönüşüm izleri.</p></div></div>
+          <div class="route"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="16" cy="18" r="5"/><circle cx="32" cy="18" r="5"/><path d="M6 38c0-7 4-11 10-11s10 4 10 11M22 38c0-7 4-11 10-11s10 4 10 11"/></svg><div><h3>Gündelik Hayat Rotası</h3><p>İstanbullunun gündelik yaşamı, üretim, mahalle ve kültür.</p></div></div>
+          <div class="route"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18c4-4 8-4 12 0s8 4 12 0 8-4 12 0M6 26c4-4 8-4 12 0s8 4 12 0 8-4 12 0M6 34c4-4 8-4 12 0s8 4 12 0 8-4 12 0"/></svg><div><h3>Su Rotası</h3><p>Kentin suyla kurduğu ilişki; ulaşım, ticaret ve yaşam.</p></div></div>
+        </div>
+      </div>
+      <div>
+        <h2>Atölyeler &amp; Söyleşiler</h2>
+        <p class="lead">Güney kanattaki 80 m² atölyede ve jüri sınıfında, elle düşünmek için.</p>
+        <div class="ateliers">
+          <article class="atl"><img src="img/mozaik.jpg" alt="Renkli taşlardan mozaik deseni"><div><h3>Mozaik Atölyesi</h3><p>Antik desenlerden ilhamla mozaik üretimi.</p></div></article>
+          <article class="atl"><img src="img/maket.jpg" alt="Ahşaptan tarihi yapı maketleri"><div><h3>Maket Atölyesi</h3><p>Tarihi yapılardan mekân maketi tasarımı.</p></div></article>
+          <article class="atl"><img src="img/seramik.jpg" alt="Çarkta şekillenen kil"><div><h3>Seramik Atölyesi</h3><p>İlk yerleşimlerden ilhamla seramik form tasarımı.</p></div></article>
+          <article class="atl"><img src="img/soylesi.jpg" alt="Söyleşi salonunda sandalye sıraları"><div><h3>Söyleşi Serisi</h3><p>Arkeoloji, mimarlık ve kültür mirası üzerine uzman buluşmaları.</p></div></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band visit" id="ziyaret">
+    <div class="wrap">
+      <h2>Ziyaret Bilgileri</h2>
+      <p class="lead">Planla, keşfet, deneyimle.</p>
+      <div class="vgrid">
+        <div><h3>Saatler &amp; bilet</h3><dl>
+          <div><dt>Ziyaret günleri</dt><dd><big>Salı – Pazar</big><br>10.00 – 18.00 · son giriş 17.00</dd></div>
+          <div><dt>Bilet</dt><dd>Öğrenci / Tam / İndirimli — güncel ücretler web sitesinde.</dd></div>
+          <div><dt>Erişilebilirlik</dt><dd>Tüm sergi ve etkinlik alanları erişilebilir; zemin katta asansör ve engelsiz WC bulunur.</dd></div>
+        </dl></div>
+        <div><h3>Ulaşım</h3><dl>
+          <div><dt>Adres</dt><dd>Beykoz Kundura, Kundura Cad. No:1, Beykoz / İstanbul</dd></div>
+          <div><dt>Deniz</dt><dd>Beşiktaş – Beykoz İskelesi, yaklaşık 25 dk; iskeleden doğrudan kafe girişine.</dd></div>
+          <div><dt>Otobüs</dt><dd>15BK · 15F · 15C — Beykoz Kundura durağı</dd></div>
+          <div><dt>Özel araç</dt><dd>Otopark alanı mevcuttur.</dd></div>
+        </dl></div>
+        <div><h3>İletişim</h3><dl>
+          <div><dt>Web</dt><dd><a href="https://www.istanbulzamanmuzesi.org">www.istanbulzamanmuzesi.org</a></dd></div>
+          <div><dt>E-posta</dt><dd>info@istanbulzamanmuzesi.org</dd></div>
+          <div><dt>Instagram</dt><dd>@istanbulzamanmuzesi</dd></div>
+        </dl>
+        <p style="margin-top:22px"><a class="btn ghost" style="color:#f3e9da" href="#tur" data-ch="1">Turu baştan başlat</a></p></div>
+      </div>
+      <figure class="pano" style="margin-left:0;margin-right:0"><img src="img/bogaz.jpg" alt="Boğaz kıyısında Beykoz sırtları ve bir vapur"><figcaption>Beykoz kıyısı — müzeye vapurla gelmek mümkün.</figcaption></figure>
+    </div>
+  </section>
+  <footer>
+    <a class="brand" href="#top"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 36V18C5 10 12 4 20 4s15 6 15 14v18"/><path d="M5 36h30"/><path d="M12 36V21a4 4 0 0 1 8 0v15M20 36V21a4 4 0 0 1 8 0v15"/></svg><span>İstanbul Zaman Müzesi<small>BEYKOZ KUNDURA</small></span></a>
+    <span>Üç boyutlu model, zemin kat planındaki aks, duvar ve mobilya yerleşimine göre üretilmiştir.</span>
+  </footer>
+</main>
+
+<script>
+window.MUSEUM_CHAPTERS=[
+ {id:'hero',pos:[118,44,96],tgt:[42,0,10]},
+ {id:'giris',name:'Karşılama',rooms:['karsilama','merdiven'],m2:75,kicker:'Batı girişi',side:'l',pos:[17.4,3.1,16.3],tgt:[3,1.6,10.2],via:[[-14,3.4,12.9],[2.5,2.6,13.2],[5,2.8,15.4]],
+  text:"Kundura fabrikasının taş cephesindeki kemerli kapıdan girersiniz. Terrazzo zeminli karşılama holü, U merdiven ve cam asansörle müzenin uzun galeri aksının başlangıcıdır.",chips:['Bilet & bilgi','Merdiven + asansör','Dinlenme köşesi']},
+ {id:'dijital',name:'Dijital Alan',rooms:['dijital'],m2:38,kicker:'Karşılamanın hemen yanında',side:'l',pos:[12.6,2.8,16.6],tgt:[17,1.3,9.6],
+  text:"Kavisli ekranlar ve zemine yansıyan etkileşimli harita, kentin katmanlarını bir dokunuşla açar: kıyı çizgisinin, yolların ve mahallelerin yüzyıllar içindeki yer değiştirmesi.",chips:['Kavisli ekranlar','Etkileşimli zemin']},
+ {id:'degisen',name:'Değişen Sergi Alanı',rooms:['degisen'],m2:275,kicker:'Aks 4–7',side:'l',pos:[36.4,3.0,12.2],tgt:[28.7,.9,6.2],via:[[28.8,3,15]],
+  text:"Salonun merkezinde, Göbeklitepe'nin taş çemberlerini hatırlatan basamaklı halka. Çevresini dolaşan rota, duvar vitrinleri ve kavisli panolarla her ay farklı bir uygarlığı anlatır.",now:true},
+ {id:'kalici',name:'Kalıcı Sergi Alanı',rooms:['kalici'],m2:244,kicker:'Toprak zemin · Aks 7–12',side:'l',pos:[40.2,4.0,15.8],tgt:[53.5,.6,7.6],
+  text:"Zaman Topoğrafyası: toprak zemin üzerinde Tarihi Yarımada, Haliç ve Boğaz'ı anıtlarıyla taşıyan büyük İstanbul maketi. Cam korkuluk boyunca İktidar, Gündelik Hayat ve Su rotalarını izlersiniz.",chips:['İktidar Rotası','Gündelik Hayat Rotası','Su Rotası']},
+ {id:'asma',floor:1,name:'Asma Kat: Zaman Rampası',rooms:['m_din','m_tarih','m_byz','m_konst','m_biz','m_osm','m_cum','m_gun'],kicker:'1. asma kat · +4,00 → +7,50',side:'l',pos:[16.6,6.0,12.0],tgt:[46,4.6,12.6],hop:1,
+  text:"Karşılamadaki merdivenle +4,00'teki dinlenme alanına çıkarsınız. Buradan başlayan rampalar sizi salonun üzerinde yüzen yedi sergi adasına götürür. Her ada bir öncekinden yarım metre yüksekte; yürüdükçe zamanda ilerlersiniz.",chips:['7 dönem','%6 eğimli rampalar','Engelsiz rota']},
+ {id:'tarih',floor:1,name:'Tarih Öncesi → Konstantinopolis',rooms:['m_tarih','m_byz','m_konst'],m2:311,kicker:'+4,50 · +5,00 · +5,50',side:'l',pos:[28.2,7.1,16.4],tgt:[46,3.8,11.2],
+  text:"Altıgen mağara dioraması ile Tarih Öncesi Dönem (96 m²), değişen sergi salonunun üzerinde. Rampayla maketin üstünden geçip Byzantion'a (83 m²) ve hipodrom maketinin bulunduğu Konstantinopolis'e (132 m²) uzanırsınız.",chips:['Tarih Öncesi +4,50','Byzantion +5,00','Konstantinopolis +5,50']},
+ {id:'bizans',floor:1,name:'Bizans → Osmanlı İstanbul\'u',rooms:['m_biz','m_osm'],m2:237,kicker:'+6,00 · +6,50 · doğu ucu',side:'l',pos:[79,7.4,16.0],tgt:[92,5.6,8.2],hop:2.5,
+  text:"Rota binanın doğu ucunda döner. Tüm derinliği kaplayan Bizans İstanbulu adasında (142 m²) Ayasofya maketi var. Geri dönüş rampası sizi saray maketiyle Osmanlı İstanbulu'na (95 m²) çıkarır; aşağıda görünür depoların cam cepheleri uzanır.",chips:['Bizans İstanbulu +6,00','Osmanlı İstanbulu +6,50']},
+ {id:'gunumuz',floor:1,name:'Cumhuriyet → Günümüz',rooms:['m_cum','m_gun'],m2:226,kicker:'+7,00 · +7,50 · rotanın zirvesi',side:'l',pos:[27.3,10.4,7.6],tgt:[58,5.2,8.6],hop:2.5,
+  text:"Kuzey duvarı boyunca yükselen rampa, demiryolu maketiyle Cumhuriyet Dönemi'ne (95 m²) ve en üstte Günümüz İstanbulu'na (131 m²) varır. Buradan tüm salona ve maket kente bakarsınız; merdiven sizi dinlenme alanına indirir.",chips:['Cumhuriyet +7,00','Günümüz +7,50','Merdivenle dönüş']},
+ {id:'atolye',name:'Atölye & Jüri Sınıfı',rooms:['atolye','toplanti','juri'],m2:80,kicker:'Güneydoğu kanadı',side:'l',pos:[64.8,3.4,33.4],tgt:[73,1.0,22.5],hop:13,
+  text:"Altı çalışma masalı atölye; sürgülü panellerle bölünür. Zikzak bölmenin ardında 54 m² toplantı odası ve sunumların yapıldığı jüri sınıfı — Jüri Haftası burada toplanır.",chips:['Mozaik','Maket','Seramik','Jüri Haftası']},
+ {id:'iskele',name:'Kafe & Deniz Ulaşımı',rooms:['kafe','iskele'],m2:80,kicker:'İskele girişi',side:'l',pos:[37,4.6,56],tgt:[23.5,3.2,29],hop:2,via:[[66,13,30]],
+  text:"Beşiktaş'tan kalkan vapur iskeleye yanaşır; iki ahşap rıhtım sizi turnikelerden geçirip doğrudan Boğaz'a bakan kafeye alır. Yarım kubbeli oturma nişi ve tezgâh, tur sonrası mola için.",chips:['Beşiktaş – Beykoz ≈ 25 dk','Kafe & mutfak','Turnike girişi']},
+ {id:'son',name:'Ziyaretini planla',rooms:[],kicker:'Salı – Pazar · 10.00 – 18.00',side:'l',pos:[-36,44,82],tgt:[46,0,14],
+  text:"Tek katlı, 100 metrelik tarihi fabrika binasında dört sergi alanı, atölyeler ve deniz kapısı. Aşağıda sergi takvimi ve ulaşım bilgileri.",cta:true}
+];
+</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module" src="museum.js"></script>
+<script>
+{
+const CH=window.MUSEUM_CHAPTERS, tour=document.getElementById('tour'), hud=document.getElementById('hud'), rail=document.getElementById('rail'), nav=document.getElementById('nav');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CYCLE=[['Mart','Göbeklitepe','İnsanlığın İlk İzleri'],['Nisan','Efes','Antik Kent ve Yaşam'],['Mayıs','Konstantinopolis','Doğu\'nun Başkenti'],['Haziran','Osmanlı İstanbul\'u','Bir İmparatorluk Kenti'],['Temmuz','Roma İstanbul\'u',''],['Ağustos','Selçuklu Etkileri',''],['Eylül','Erken Osmanlı',''],['Ekim','Modernleşen İstanbul',''],['Kasım','Cumhuriyet İstanbul\'u','']];
+const mi=new Date().getMonth()-2, cur=mi>=0&&mi<CYCLE.length?mi:-1;
+document.getElementById('cycle').innerHTML=CYCLE.map((c,i)=>`<li class="${i===cur?'cur':''}"><div class="m">${esc(c[0])}${i===cur?' · şimdi':''}</div><div class="n">${esc(c[1])}</div>${c[2]?`<div class="s">${esc(c[2])}</div>`:''}</li>`).join('');
+const EV=[['Mart','mart','Göbeklitepe — İnsanlığın İlk İzleri',[['08','Açılış Konuşması','Zaman Topoğrafyası ve İstanbul'],['14','Arkeoloji Atölyesi','Taş, Sembol ve Anlam'],['22','Belgesel Gösterimi','Göbeklitepe: Sıfır Noktası']]],
+['Nisan','nisan','Efes — Antik Kent ve Yaşam',[['05','Panel','Antik Kentlerde Günlük Yaşam'],['12','Atölye','Antik Mimariyi Okumak'],['26','Yürüyüş','Efes\'ten İstanbul\'a Ticaret Yolları']]],
+['Mayıs','mayis','Konstantinopolis — Doğu\'nun Başkenti',[['03','Söyleşi','Bizans\'tan İstanbul\'a Miras'],['10','Mozaik Atölyesi','Renk, Desen ve Anlatı'],['24','Film Gösterimi','İstanbul\'un İki Yüzü']]],
+['Haziran','haziran','Osmanlı İstanbul\'u — Bir İmparatorluk Kenti',[['07','Sergi Turu','Saray, Kent ve Gündelik Hayat'],['14','Atölye','Ebru ile İstanbul'],['28','Kapanış Etkinliği','Müzik, Söyleşi ve Açık Hava Buluşması']]]];
+document.getElementById('etkinlik').innerHTML=EV.map(([m,img,ex,list])=>`<article class="month"><img src="img/${img}.jpg" alt="${esc(ex)}"><h3>${esc(m)}</h3><div class="ex">${esc(ex)}</div><ul>${list.map(e=>`<li><b>${e[0]}</b><div><strong>${esc(e[1])}</strong><span>${esc(e[2])}</span></div></li>`).join('')}</ul></article>`).join('');
+const curName=cur>=0?CYCLE[cur][1]:'Yeni dönem yakında';
+
+tour.innerHTML=CH.slice(1).map((c,i)=>`<section class="ch ${c.side==='r'?'r':''}" id="${i===0?'tur':'ch-'+c.id}" data-i="${i+1}"><div class="card">
+ <div class="meta"><b>${esc(c.kicker)}</b>${c.m2?`<span>${c.m2} m²</span>`:''}</div><h2>${esc(c.name)}</h2><p>${esc(c.text)}</p>
+ ${c.chips?`<ul class="chips">${c.chips.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+ ${c.now?`<div class="now"><span>Bu ay halkada</span><strong>${esc(curName)}</strong></div>`:''}
+ ${c.cta?`<p style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#takvim">Sergi takvimi</a><a class="btn ghost" href="#ziyaret">Ulaşım</a></p>`:''}
+</div></section>`).join('');
+rail.innerHTML=CH.map((c,i)=>`<li><a href="#" data-ch="${i}"><span>${esc(i?c.name:'Plan & bina')}</span><i></i></a></li>`).join('');
+
+/* mini plan: the real drawings, in the same 90-dpi plan coordinates as the 3D model */
+const R=[['karsilama',66,412,321,461,'Karşılama',1],['merdiven',119,351,226,401],['dijital',234,338,321,412,'Dijital',2],
+['degisen',321,232,575,412,'Değişen Sergi',3],['kalici',575,232,1003,461,'Kalıcı Sergi',4],
+['gdepo',1003,232,1085,318],['bakim',1085,232,1170,318],['kol',1170,232,1254,318],['ekip',1254,232,1339,318],['ofis',1067,408,1424,461,'Depo & ofisler'],
+['kafe',321,461,575,690,'Kafe',10],['atolye',915,461,1069,690,'Atölye',9],['toplanti',1069,461,1169,552,'',9],['juri',1069,552,1169,690,'Jüri',9],['iskele',307,690,430,822,'İskele',10]];
+const MR=[['m_din',66,232,323,409,'Dinlenme','+4,00',5],['m_tarih',431,355,583,457,'Tarih Öncesi','+4,50',6],['m_byz',698,353,823,458,'Byzantion','+5,00',6],
+['m_konst',938,346,1128,458,'Konstantinopolis','+5,50',6],['m_biz',1243,231,1343,458,'Bizans','+6,00',7],['m_osm',990,232,1128,343,'Osmanlı','+6,50',7],
+['m_cum',724,232,875,332,'Cumhuriyet','+7,00',8],['m_gun',420,254,609,343,'Günümüz','+7,50',8]];
+const RP=[[19.1,11.5,27.4],[38.8,13,47.4],[56.8,13,65.4],[79.7,13,88.3],[88.3,4.6,79.6],[69.3,2.4,60.7],[49.4,2.4,40.7],[26.6,7.2,19.1]].map(([a,z,b])=>[a/.075+66,z/.075+232,b/.075+66]);
+const shell='M66 232H1424V461H1169V690H915V461H575V690H321V461H66Z';
+const rect=(id,a,b,c,d,ch,cls='room')=>`<rect class="${cls} ${ch?'go':''}" data-id="${id}" ${ch?`data-ch="${ch}"`:''} x="${a}" y="${b}" width="${c-a}" height="${d-b}"/>`;
+document.getElementById('mini').innerHTML=`<path class="shell" d="${shell}"/>
+<g id="f0"><image href="img/plan.png" x="20" y="200" width="1440" height="660" opacity=".6"/>${R.map(r=>rect(r[0],r[1],r[2],r[3],r[4],r[6])).join('')}
+${R.filter(r=>r[5]).map(([id,a,b,c,d,l])=>`<text x="${(a+c)/2}" y="${(b+d)/2+8}" text-anchor="middle">${esc(l)}</text>`).join('')}</g>
+<g id="f1" style="display:none"><image href="img/plan1.png" x="33.5" y="199" width="1465.8" height="671.9" opacity=".45"/>
+${MR.map(r=>rect(r[0],r[1],r[2],r[3],r[4],r[7],'room plat')).join('')}
+${RP.map(([a,y,b])=>`<line class="ramp" x1="${a}" y1="${y}" x2="${b}" y2="${y}"/>`).join('')}
+${MR.map(([id,a,b,c,d,l,e])=>`<text x="${(a+c)/2}" y="${(b+d)/2-2}" text-anchor="middle">${esc(l)}</text><text class="kot" x="${(a+c)/2}" y="${(b+d)/2+26}" text-anchor="middle">${e}</text>`).join('')}</g>
+<g transform="translate(1180 800)" class="scale"><path d="M0 0H133.3M0 -8V8M66.7 -6V6M133.3 -8V8"/><text x="66" y="34" text-anchor="middle">0 · 5 · 10 m</text></g>
+<g id="you"><path d="M0 0L60 -26A65 65 0 0 1 60 26Z" fill="#7b2632" fill-opacity=".28"/><circle r="11" fill="#7b2632" stroke="#fff" stroke-width="4"/></g>`;
+const you=document.getElementById('you'), rooms=[...document.querySelectorAll('#mini .room')], roomName=document.getElementById('hudRoom');
+let floorShown=0;
+function showFloor(f){ floorShown=f; document.getElementById('f0').style.display=f?'none':''; document.getElementById('f1').style.display=f?'':'none';
+  document.querySelectorAll('.floors button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.f===f)); }
+document.querySelectorAll('.floors button').forEach(b=>b.addEventListener('click',()=>showFloor(+b.dataset.f)));
+const vh=()=>innerHeight;
+function goCh(i){ const y=i===0?0:document.querySelector(`.ch[data-i="${i}"]`).offsetTop; scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
+document.addEventListener('click',e=>{const a=e.target.closest('[data-ch]'); if(!a)return; e.preventDefault(); planOff(); goCh(+a.dataset.ch);});
+let last=-1;
+function onScroll(){
+  const p=Math.max(0,Math.min(CH.length-1,scrollY/vh())), i=Math.round(p);
+  window.museum&&window.museum.setProgress(p);
+  if(window.museum&&p>.02)window.museum.skipIntro();
+  const tourEnd=tour.offsetTop+tour.offsetHeight;
+  if(window.museum)window.museum.active=scrollY<tourEnd+10;
+  hud.classList.toggle('off',p<.45||scrollY>tourEnd-vh()*.6); rail.classList.toggle('off',scrollY>tourEnd-vh()*.6);
+  nav.classList.toggle('solid',scrollY>tourEnd-80);
+  if(i!==last){ last=i;
+    document.querySelectorAll('.ch').forEach(s=>s.classList.toggle('on',+s.dataset.i===i));
+    rail.querySelectorAll('a').forEach((a,k)=>a.classList.toggle('on',k===i));
+    const ids=CH[i].rooms||[]; rooms.forEach(r=>r.classList.toggle('hl',ids.includes(r.dataset.id)));
+    roomName.textContent=CH[i].name||'Zemin kat'; showFloor(CH[i].floor||0);
+  }
+}
+addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
+addEventListener('museumframe',()=>{const c=window.museum.camPx(); you.setAttribute('transform',`translate(${c.x.toFixed(1)} ${c.y.toFixed(1)}) rotate(${(c.a*180/Math.PI).toFixed(1)})`); kot.textContent='göz kotu +'+window.museum.camY().toFixed(2).replace('.',',');});
+const planBtn=document.getElementById('planBtn'), kot=document.getElementById('kot');
+function planOff(){ if(window.museum&&planBtn.getAttribute('aria-pressed')==='true'){window.museum.togglePlan(false);planBtn.setAttribute('aria-pressed','false');planBtn.textContent='Planı aç';} }
+planBtn.addEventListener('click',()=>{ if(!window.museum)return; const on=window.museum.togglePlan(); planBtn.setAttribute('aria-pressed',on); planBtn.textContent=on?'Binaya dön':'Planı aç'; });
+setTimeout(()=>document.documentElement.classList.add('done'),4600);
+onScroll();
+const wait=setInterval(()=>{ if(window.museum){clearInterval(wait);onScroll();} },100);
+}
+</script>
+</body>
+</html>
